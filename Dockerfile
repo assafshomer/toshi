@@ -1,17 +1,26 @@
-# Start with an Ubuntu 14.04 image that has ruby 2.1.2
-FROM litaio/ruby:2.1.2
+# Start with an Ubuntu 14.04 image that has ruby 2.1.5
+FROM litaio/ruby:2.1.5
+
+ENV DEBIAN_FRONTEND noninteractive
 
 # Install dependencies
-RUN apt-get -y install libpq-dev
+RUN apt-get -q -y install libpq-dev git
 RUN gem install bundler
 
-# Add the Gemfile to the image
-# Separate this from the source so as not to bust the cache
 ADD Gemfile /Gemfile
 ADD Gemfile.lock /Gemfile.lock
 
+# Create a nonroot user and switch to it so that we can run bundle install
+RUN /usr/sbin/useradd --create-home --home-dir /usr/local/nonroot --shell /bin/bash nonroot
+RUN /usr/sbin/adduser nonroot sudo
+RUN chown -R nonroot /usr/local/
+RUN chown -R nonroot /usr/lib/
+RUN chown -R nonroot /usr/bin/
+
+USER nonroot
+
 # Install gems
-RUN bundle install 
+RUN bundle install
 
 # Add the source dir
 ADD . /toshi
@@ -23,4 +32,4 @@ ADD config/toshi.yml.example /toshi/config/toshi.yml
 WORKDIR /toshi
 
 # Expose port 5000 of the container to the host
-EXPOSE 5000
+EXPOSE 5000 
