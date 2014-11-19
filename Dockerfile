@@ -22,6 +22,9 @@ USER nonroot
 # Install gems
 RUN bundle install
 
+# switch back to root for the rest of the show
+USER root
+
 # Add the source dir
 ADD . /toshi
 
